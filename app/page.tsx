@@ -34,12 +34,12 @@ export default async function HomePage() {
           }}
         />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16 flex flex-col sm:flex-row items-center gap-8">
-          <div className="relative shrink-0 w-36 h-36 sm:w-48 sm:h-48 rounded-2xl bg-[#6B35A3] overflow-hidden shadow-[0_0_40px_rgba(107,53,163,0.6)]">
+          <div className="relative shrink-0 w-40 h-40 sm:w-56 sm:h-56 drop-shadow-[0_0_30px_rgba(139,69,200,0.6)]">
             <Image
-              src="/logos/batter.png"
+              src="/logos/batter-nobg.png"
               alt="Trash Pandas batter"
               fill
-              className="object-contain mix-blend-multiply scale-110"
+              className="object-contain"
               priority
             />
           </div>
