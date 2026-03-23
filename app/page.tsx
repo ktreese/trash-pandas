@@ -36,7 +36,7 @@ export default async function HomePage() {
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16 flex flex-col sm:flex-row items-center gap-8">
           <div className="relative shrink-0 w-40 h-40 sm:w-56 sm:h-56 drop-shadow-[0_0_30px_rgba(139,69,200,0.6)]">
             <Image
-              src="/logos/batter-nobg.png"
+              src="/logos/batter-removebg-preview.png"
               alt="Trash Pandas batter"
               fill
               className="object-contain"
