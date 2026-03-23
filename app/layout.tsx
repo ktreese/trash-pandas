@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"),
   title: "Trash Pandas 14U",
   description: "Official home of the Trash Pandas 14U baseball club — photos, videos, and more.",
   icons: {
