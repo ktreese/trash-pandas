@@ -50,6 +50,9 @@ export async function saveMediaMeta(data: {
   return item;
 }
 
-export async function deleteMedia(metaUrl: string, mediaBlobUrl: string): Promise<void> {
-  await Promise.all([del(metaUrl), del(mediaBlobUrl)]);
+export async function deleteMediaItem(id: string, blobUrl: string): Promise<void> {
+  // Find the companion meta blob by prefix and delete both in parallel
+  const { blobs: metaBlobs } = await list({ prefix: `${META_PREFIX}${id}` });
+  const urlsToDelete: string[] = [blobUrl, ...metaBlobs.map((b) => b.url)];
+  await del(urlsToDelete);
 }

@@ -1,9 +1,9 @@
 import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { saveMediaMeta } from "@/lib/media";
+import { verifyUploadSession } from "@/lib/auth";
 
 // Edge runtime: no request body size limit — files stream straight to Vercel Blob.
-// This replaces the @vercel/blob/client flow which has CORS issues in local dev.
 export const runtime = "edge";
 
 const ALLOWED_TYPES = new Set([
@@ -17,6 +17,13 @@ const ALLOWED_TYPES = new Set([
 ]);
 
 export async function POST(request: Request): Promise<NextResponse> {
+  // ── Verify upload session cookie ────────────────────────────────────────────
+  const cookie = request.headers.get("cookie") ?? "";
+  const uploadToken = cookie.match(/(?:^|;\s*)upload_auth=([^;]+)/)?.[1];
+  if (!uploadToken || !(await verifyUploadSession(uploadToken))) {
+    return NextResponse.json({ error: "Unauthorized — enter the team code first." }, { status: 401 });
+  }
+
   try {
     const contentType = request.headers.get("content-type") ?? "application/octet-stream";
     const filename = decodeURIComponent(request.headers.get("x-filename") ?? `upload-${Date.now()}`);
