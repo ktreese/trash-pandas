@@ -1,48 +1,55 @@
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
+import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
+import { saveMediaMeta } from "@/lib/media";
 
-// This route handles the signed token exchange for direct client-to-blob uploads.
-// Large files (photos, videos) are uploaded straight to Vercel Blob from the browser,
-// bypassing the serverless function body limit entirely.
+// Edge runtime: no request body size limit — files stream straight to Vercel Blob.
+// This replaces the @vercel/blob/client flow which has CORS issues in local dev.
+export const runtime = "edge";
+
+const ALLOWED_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "video/mp4",
+  "video/quicktime",
+  "video/webm",
+]);
+
 export async function POST(request: Request): Promise<NextResponse> {
-  const body = (await request.json()) as HandleUploadBody;
-
   try {
-    const jsonResponse = await handleUpload({
-      body,
-      request,
-      onBeforeGenerateToken: async (pathname) => {
-        // Validate file extension / type here if needed
-        const ext = pathname.split(".").pop()?.toLowerCase() ?? "";
-        const allowed = ["jpg", "jpeg", "png", "gif", "webp", "mp4", "mov", "webm", "m4v"];
-        if (!allowed.includes(ext)) {
-          throw new Error(`File type .${ext} is not allowed.`);
-        }
+    const contentType = request.headers.get("content-type") ?? "application/octet-stream";
+    const filename = decodeURIComponent(request.headers.get("x-filename") ?? `upload-${Date.now()}`);
+    const caption = decodeURIComponent(request.headers.get("x-caption") ?? "") || undefined;
+    const uploaderName = decodeURIComponent(request.headers.get("x-uploader") ?? "") || undefined;
+    const size = Number(request.headers.get("x-size")) || undefined;
 
-        return {
-          allowedContentTypes: [
-            "image/jpeg",
-            "image/png",
-            "image/gif",
-            "image/webp",
-            "video/mp4",
-            "video/quicktime",
-            "video/webm",
-          ],
-          maximumSizeInBytes: 500 * 1024 * 1024, // 500 MB
-        };
-      },
-      onUploadCompleted: async ({ blob }) => {
-        // Called after successful upload — optional hook
-        console.log("Blob uploaded:", blob.url);
-      },
+    const baseType = contentType.split(";")[0].trim();
+    if (!ALLOWED_TYPES.has(baseType)) {
+      return NextResponse.json({ error: `File type ${baseType} is not allowed.` }, { status: 400 });
+    }
+
+    if (!request.body) {
+      return NextResponse.json({ error: "No file body provided." }, { status: 400 });
+    }
+
+    const blob = await put(`uploads/${filename}`, request.body, {
+      access: "public",
+      contentType: baseType,
     });
 
-    return NextResponse.json(jsonResponse);
-  } catch (error) {
-    return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 400 }
-    );
+    const item = await saveMediaMeta({
+      blob_url: blob.url,
+      blob_pathname: blob.pathname,
+      content_type: baseType,
+      size,
+      caption,
+      uploader_name: uploaderName,
+    });
+
+    return NextResponse.json(item, { status: 201 });
+  } catch (err) {
+    console.error("Upload error:", err);
+    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }
 }

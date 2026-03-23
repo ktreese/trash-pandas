@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useCallback, type ChangeEvent, type DragEvent } from "react";
-import { upload } from "@vercel/blob/client";
 import Image from "next/image";
 import { Camera, Video, X, Upload, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -79,25 +78,23 @@ export default function UploadForm() {
         const { file } = previews[i];
         const filename = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
 
-        // Client-side direct upload to Vercel Blob
-        const blob = await upload(filename, file, {
-          access: "public",
-          handleUploadUrl: "/api/upload",
+        // Stream file directly to our Edge API route — no CORS issues, no size limit.
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          headers: {
+            "Content-Type": file.type,
+            "x-filename": encodeURIComponent(filename),
+            "x-caption": encodeURIComponent(caption.trim()),
+            "x-uploader": encodeURIComponent(uploaderName.trim()),
+            "x-size": String(file.size),
+          },
+          body: file,
         });
 
-        // Save metadata to DB
-        await fetch("/api/media", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            blob_url: blob.url,
-            blob_pathname: blob.pathname,
-            content_type: file.type,
-            size: file.size,
-            caption: caption.trim() || undefined,
-            uploader_name: uploaderName.trim() || undefined,
-          }),
-        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: "Upload failed" }));
+          throw new Error(err.error ?? "Upload failed");
+        }
 
         setProgress(Math.round(((i + 1) / previews.length) * 100));
       }
