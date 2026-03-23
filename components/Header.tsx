@@ -8,7 +8,6 @@ import { Menu, X, Camera } from "lucide-react";
 
 const navLinks = [
   { href: "/", label: "Gallery" },
-  { href: "/upload", label: "Upload" },
 ];
 
 export default function Header() {
