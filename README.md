@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Trash Pandas 14U — Team Website
 
-## Getting Started
+Dark-mode photo & video gallery for the Trash Pandas 14U baseball club. Built with Next.js, Vercel Blob, and Neon Postgres.
 
-First, run the development server:
+## Local Development
+
+### 1. Prerequisites
+
+- Node.js 18+
+- A free [Neon](https://neon.tech) Postgres database
+- A [Vercel](https://vercel.com) account with a Blob store (free tier works)
+
+### 2. Clone and install
+
+```bash
+git clone git@github.com:ktreese/trash-pandas.git
+cd trash-pandas
+npm install
+```
+
+### 3. Set up environment variables
+
+```bash
+cp .env.local.example .env.local
+# Fill in DATABASE_URL and BLOB_READ_WRITE_TOKEN
+```
+
+**Option A — Vercel CLI (recommended):**
+```bash
+npm i -g vercel
+vercel link             # link to your Vercel project
+vercel env pull .env.local   # pulls Blob token automatically
+```
+
+**Option B — Manual:**
+- Neon: create a project at [neon.tech](https://neon.tech), copy the pooled connection string → `DATABASE_URL`
+- Vercel Blob: vercel.com → Storage → Blob → your store → `.env.local` tab → copy `BLOB_READ_WRITE_TOKEN`
+
+### 4. Run the DB migration
+
+Open the Neon SQL editor (or any Postgres client) and run:
+
+```bash
+# Paste contents of migrations/001_init.sql
+```
+
+### 5. Start dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# → http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy to Vercel
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+vercel deploy --prod
+```
 
-## Learn More
+Ensure `DATABASE_URL` and `BLOB_READ_WRITE_TOKEN` are set in Vercel project → Settings → Environment Variables.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Phase 2 (Planned)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Game schedule page
+- Player roster
 
-## Deploy on Vercel
+## Color Palette
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Token | Hex | Use |
+|-------|-----|-----|
+| Black | `#0d0d0d` | Page background |
+| Surface | `#1a1a1a` | Cards, panels |
+| Purple | `#6B35A3` | Primary brand |
+| Purple Bright | `#8B45C8` | Hover states |
+| Purple Light | `#c4a0e8` | Text accents |
+| Silver | `#8a8a8a` | Secondary text |
