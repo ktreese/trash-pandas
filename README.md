@@ -1,13 +1,20 @@
 # Trash Pandas 14U — Team Website
 
-Dark-mode photo & video gallery for the Trash Pandas 14U baseball club. Built with Next.js, Vercel Blob, and Neon Postgres.
+Dark-mode photo & video gallery for the Trash Pandas 14U baseball club. Built with Next.js and Vercel Blob — no database required.
+
+## How it works
+
+Every upload creates two blobs:
+- `uploads/{filename}` — the photo or video
+- `meta/{uuid}.json` — tiny metadata file (caption, uploader, timestamp)
+
+The gallery lists all `meta/` blobs and fetches them in parallel. That's it — no DB to provision.
 
 ## Local Development
 
 ### 1. Prerequisites
 
 - Node.js 18+
-- A free [Neon](https://neon.tech) Postgres database
 - A [Vercel](https://vercel.com) account with a Blob store (free tier works)
 
 ### 2. Clone and install
@@ -22,29 +29,19 @@ npm install
 
 ```bash
 cp .env.local.example .env.local
-# Fill in DATABASE_URL and BLOB_READ_WRITE_TOKEN
 ```
 
 **Option A — Vercel CLI (recommended):**
 ```bash
 npm i -g vercel
-vercel link             # link to your Vercel project
-vercel env pull .env.local   # pulls Blob token automatically
+vercel link                  # link to your Vercel project
+vercel env pull .env.local   # pulls BLOB_READ_WRITE_TOKEN automatically
 ```
 
 **Option B — Manual:**
-- Neon: create a project at [neon.tech](https://neon.tech), copy the pooled connection string → `DATABASE_URL`
-- Vercel Blob: vercel.com → Storage → Blob → your store → `.env.local` tab → copy `BLOB_READ_WRITE_TOKEN`
+vercel.com → Storage → Blob → your store → `.env.local` tab → copy `BLOB_READ_WRITE_TOKEN` into `.env.local`
 
-### 4. Run the DB migration
-
-Open the Neon SQL editor (or any Postgres client) and run:
-
-```bash
-# Paste contents of migrations/001_init.sql
-```
-
-### 5. Start dev server
+### 4. Start dev server
 
 ```bash
 npm run dev
@@ -56,10 +53,10 @@ npm run dev
 ## Deploy to Vercel
 
 ```bash
-vercel deploy --prod
+git push origin main
 ```
 
-Ensure `DATABASE_URL` and `BLOB_READ_WRITE_TOKEN` are set in Vercel project → Settings → Environment Variables.
+Vercel auto-deploys on push. Make sure `BLOB_READ_WRITE_TOKEN` is set in your Vercel project → Settings → Environment Variables (the Blob store connection does this automatically if you linked it in the dashboard).
 
 ---
 

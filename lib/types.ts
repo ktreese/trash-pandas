@@ -1,5 +1,5 @@
 export interface MediaItem {
-  id: number;
+  id: string;
   blob_url: string;
   blob_pathname: string;
   content_type: string;

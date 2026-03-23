@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Camera } from "lucide-react";
 import MediaGrid from "@/components/MediaGrid";
-import { getAllMedia } from "@/lib/db";
+import { getAllMedia } from "@/lib/media";
 import type { MediaItem } from "@/lib/types";
 
 export const revalidate = 30; // ISR — revalidate every 30s

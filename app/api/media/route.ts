@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAllMedia, insertMedia } from "@/lib/db";
+import { getAllMedia, saveMediaMeta } from "@/lib/media";
 
 export async function GET() {
   try {
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const item = await insertMedia({
+    const item = await saveMediaMeta({
       blob_url,
       blob_pathname,
       content_type,
