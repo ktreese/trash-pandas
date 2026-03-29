@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       zip.file(name, buffer);
     }
 
-    const zipBuffer = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
+    const zipBuffer = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
     const zipFilename = `trash-pandas-${getDateString()}.zip`;
 
     return new Response(zipBuffer, {
