@@ -53,16 +53,15 @@ export async function POST(req: Request) {
       zip.file(name, buffer);
     }
 
-    const zipBuffer = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
+    const zipArrayBuffer = await zip.generateAsync({ type: "arraybuffer", compression: "DEFLATE" });
     const zipFilename = `trash-pandas-${getDateString()}.zip`;
-    const blob = new Blob([zipBuffer], { type: "application/zip" });
 
-    return new Response(blob, {
+    return new Response(zipArrayBuffer, {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
         "Content-Disposition": `attachment; filename="${zipFilename}"`,
-        "Content-Length": String(zipBuffer.byteLength),
+        "Content-Length": String(zipArrayBuffer.byteLength),
       },
     });
   } catch (err) {
