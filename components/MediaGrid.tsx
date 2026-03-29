@@ -12,6 +12,7 @@ interface MediaCardProps {
   onToggleSelect: () => void;
   isDownloaded: boolean;
   onSingleDownload: (e: React.MouseEvent) => void;
+  priority?: boolean;
 }
 
 interface MediaGridProps {
@@ -32,6 +33,7 @@ export function MediaCard({
   onToggleSelect,
   isDownloaded,
   onSingleDownload,
+  priority = false,
 }: MediaCardProps) {
   const isVideo = item.content_type.startsWith("video/");
 
@@ -73,6 +75,7 @@ export function MediaCard({
             height={400}
             className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-300"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            priority={priority}
           />
         )}
       </div>
@@ -160,6 +163,7 @@ export default function MediaGrid({
           onToggleSelect={() => onToggleSelect(item.id)}
           isDownloaded={downloadedIds.has(item.id)}
           onSingleDownload={(e) => onSingleDownload(item, e)}
+          priority={i === 0}
         />
       ))}
     </div>
