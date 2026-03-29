@@ -40,7 +40,7 @@ export default function TeamCodeForm() {
   return (
     <div className="mx-auto max-w-sm w-full px-4 sm:px-6 py-16 flex flex-col items-center">
       <div className="relative h-16 w-16 mb-6">
-        <Image src="/logos/tp-icon.png" alt="Trash Pandas" fill className="object-contain" />
+        <Image src="/logos/tp-icon.png" alt="Trash Pandas" fill className="object-contain" sizes="64px" />
       </div>
 
       <h1 className="text-2xl font-bold text-white text-center">Team Access</h1>

@@ -49,7 +49,7 @@ function LoginForm() {
         {/* Header */}
         <div className="flex flex-col items-center mb-8 gap-3">
           <div className="relative h-16 w-16">
-            <Image src="/logos/tp-icon.png" alt="Trash Pandas" fill className="object-contain" />
+            <Image src="/logos/tp-icon.png" alt="Trash Pandas" fill className="object-contain" sizes="64px" />
           </div>
           <div className="text-center">
             <h1 className="text-xl font-bold text-white">Admin Login</h1>

@@ -1,5 +1,6 @@
-import { getAllMedia } from "@/lib/media";
+import { getAllMedia, getStorageStats } from "@/lib/media";
 import AdminMediaGrid from "@/components/admin/AdminMediaGrid";
+import StorageBar from "@/components/admin/StorageBar";
 import LogoutButton from "@/components/admin/LogoutButton";
 import Image from "next/image";
 
@@ -7,8 +8,10 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
   let items: Awaited<ReturnType<typeof getAllMedia>> = [];
+  let storage = { usedBytes: 0, blobCount: 0 };
+
   try {
-    items = await getAllMedia();
+    [items, storage] = await Promise.all([getAllMedia(), getStorageStats()]);
   } catch {
     items = [];
   }
@@ -20,7 +23,7 @@ export default async function AdminDashboardPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative h-8 w-8">
-              <Image src="/logos/tp-icon.png" alt="Trash Pandas" fill className="object-contain" />
+              <Image src="/logos/tp-icon.png" alt="Trash Pandas" fill className="object-contain" sizes="32px" />
             </div>
             <div>
               <span className="text-white font-semibold text-sm">Admin Dashboard</span>
@@ -34,13 +37,17 @@ export default async function AdminDashboardPage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-xl font-bold text-white">Media Gallery</h1>
             <p className="text-[#8a8a8a] text-sm mt-0.5">
               {items.length} item{items.length !== 1 ? "s" : ""} — hover a photo to delete
             </p>
           </div>
+        </div>
+
+        <div className="mb-6">
+          <StorageBar usedBytes={storage.usedBytes} blobCount={storage.blobCount} />
         </div>
 
         <AdminMediaGrid items={items} />

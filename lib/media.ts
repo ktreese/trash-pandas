@@ -50,6 +50,24 @@ export async function saveMediaMeta(data: {
   return item;
 }
 
+export async function getStorageStats(): Promise<{ usedBytes: number; blobCount: number }> {
+  let usedBytes = 0;
+  let blobCount = 0;
+  let cursor: string | undefined;
+
+  // Paginate through ALL blobs (not just meta/) to get true storage usage
+  do {
+    const result = await list({ cursor, limit: 1000 });
+    for (const blob of result.blobs) {
+      usedBytes += blob.size;
+      blobCount++;
+    }
+    cursor = result.cursor;
+  } while (cursor);
+
+  return { usedBytes, blobCount };
+}
+
 export async function deleteMediaItem(id: string, blobUrl: string): Promise<void> {
   // Find the companion meta blob by prefix and delete both in parallel
   const { blobs: metaBlobs } = await list({ prefix: `${META_PREFIX}${id}` });

@@ -4,8 +4,6 @@ import { verify as totpVerify } from "otplib";
 import { signAdminSession } from "@/lib/auth";
 import { checkRateLimit, clearRateLimit } from "@/lib/rate-limit";
 
-// Node.js runtime required for bcryptjs and otplib
-export const runtime = "nodejs";
 
 export async function POST(request: Request): Promise<NextResponse> {
   // ── Rate limiting ──────────────────────────────────────────────────────────
@@ -29,6 +27,11 @@ export async function POST(request: Request): Promise<NextResponse> {
   // ── Validate env vars ──────────────────────────────────────────────────────
   const passwordHash = process.env.ADMIN_PASSWORD_HASH;
   const totpSecret = process.env.ADMIN_TOTP_SECRET;
+
+  // TEMP DEBUG
+  console.log("[login debug] HASH defined:", typeof passwordHash, "len:", passwordHash?.length ?? "undef");
+  console.log("[login debug] TOTP defined:", typeof totpSecret, "len:", totpSecret?.length ?? "undef");
+  console.log("[login debug] All ADMIN_ keys:", Object.keys(process.env).filter(k => k.startsWith("ADMIN_") || k.startsWith("UPLOAD_") || k.startsWith("TEAM_") || k.startsWith("BLOB_")));
 
   if (!passwordHash || !totpSecret) {
     console.error("Admin credentials not configured");

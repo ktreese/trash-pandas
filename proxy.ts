@@ -8,7 +8,7 @@ function adminSecret() {
   return new TextEncoder().encode(s);
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // ── Protect admin dashboard and admin API routes ──────────────────────────
@@ -40,3 +40,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/admin/dashboard/:path*", "/api/admin/media/:path*"],
 };
+
+// Next.js 16+ proxy alias
+export default proxy;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, type ChangeEvent, type DragEvent } from "react";
+import { useState, useEffect, useRef, useCallback, type ChangeEvent, type DragEvent } from "react";
 import Image from "next/image";
 import { Camera, Video, X, Upload, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -23,11 +23,20 @@ export default function UploadForm() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [previews, setPreviews] = useState<Preview[]>([]);
   const [caption, setCaption] = useState("");
-  const [uploaderName, setUploaderName] = useState("");
+  const [uploaderName, setUploaderName] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("tp_uploader_name") ?? "";
+    }
+    return "";
+  });
   const [state, setState] = useState<UploadState>("idle");
   const [progress, setProgress] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
   const [dragging, setDragging] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem("tp_uploader_name", uploaderName);
+  }, [uploaderName]);
 
   const ACCEPTED = "image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm";
   const MAX_SIZE = 500 * 1024 * 1024; // 500 MB

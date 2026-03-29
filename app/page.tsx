@@ -40,6 +40,7 @@ export default async function HomePage() {
               alt="Trash Pandas batter"
               fill
               className="object-contain"
+              sizes="(max-width: 640px) 160px, 224px"
               priority
             />
           </div>

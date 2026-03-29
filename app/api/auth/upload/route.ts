@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
 import { signUploadSession } from "@/lib/auth";
 
-// Node.js runtime for timingSafeEqual
-export const runtime = "nodejs";
 
 export async function POST(request: Request): Promise<NextResponse> {
   const teamCode = process.env.TEAM_UPLOAD_CODE;

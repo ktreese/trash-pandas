@@ -30,7 +30,7 @@ console.log("\n✅  Password hashed (bcrypt, 12 rounds)\n");
 
 // ── TOTP secret ───────────────────────────────────────────────────────────────
 const totpSecret = generateSecret();
-const otpauthUrl = generateURI("admin", totpSecret, { issuer: "TrashPandas14U" });
+const otpauthUrl = generateURI({ label: "admin", secret: totpSecret, issuer: "TrashPandas14U" });
 
 console.log("📱  Scan this URL in your authenticator app:");
 console.log(`\n    ${otpauthUrl}\n`);
@@ -66,11 +66,12 @@ rl.close();
 console.log("\n══════════════════════════════════════════════════════════");
 console.log("  Add these to your .env.local AND Vercel environment vars");
 console.log("══════════════════════════════════════════════════════════\n");
-console.log(`ADMIN_PASSWORD_HASH="${hash}"`);
-console.log(`ADMIN_TOTP_SECRET="${totpSecret}"`);
-console.log(`ADMIN_JWT_SECRET="${adminJwtSecret}"`);
-console.log(`UPLOAD_JWT_SECRET="${uploadJwtSecret}"`);
-console.log(`TEAM_UPLOAD_CODE="${teamCode}"`);
+// Single quotes prevent $ signs in bcrypt hashes from being interpreted as variables
+console.log(`ADMIN_PASSWORD_HASH='${hash}'`);
+console.log(`ADMIN_TOTP_SECRET='${totpSecret}'`);
+console.log(`ADMIN_JWT_SECRET='${adminJwtSecret}'`);
+console.log(`UPLOAD_JWT_SECRET='${uploadJwtSecret}'`);
+console.log(`TEAM_UPLOAD_CODE='${teamCode}'`);
 console.log("\n══════════════════════════════════════════════════════════");
 console.log("  ⚠️  Save these securely. The TOTP secret is shown once.");
 console.log("══════════════════════════════════════════════════════════\n");

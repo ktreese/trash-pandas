@@ -26,6 +26,7 @@ export default function Header() {
                 alt="Trash Pandas"
                 fill
                 className="object-contain"
+                sizes="40px"
                 priority
               />
             </div>
