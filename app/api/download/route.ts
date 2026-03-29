@@ -55,8 +55,9 @@ export async function POST(req: Request) {
 
     const zipBuffer = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
     const zipFilename = `trash-pandas-${getDateString()}.zip`;
+    const blob = new Blob([zipBuffer], { type: "application/zip" });
 
-    return new Response(zipBuffer, {
+    return new Response(blob, {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
