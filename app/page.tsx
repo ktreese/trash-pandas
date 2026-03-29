@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Camera } from "lucide-react";
-import MediaGrid from "@/components/MediaGrid";
+import GalleryView from "@/components/GalleryView";
 import { getAllMedia } from "@/lib/media";
 import type { MediaItem } from "@/lib/types";
 
@@ -50,7 +50,9 @@ export default async function HomePage() {
             </h1>
             <p className="text-[#c4a0e8] text-xl font-semibold mt-1">14U Baseball</p>
             <p className="text-[#8a8a8a] mt-3 max-w-lg text-sm sm:text-base">
-              Relive the moments — photos and videos from the field, the dugout, and everything in between.
+              Relive the moments — photos and videos from the field,
+              <br />
+              the dugout, and everything in between.
             </p>
             <Link
               href="/upload"
@@ -65,23 +67,7 @@ export default async function HomePage() {
 
       {/* Gallery */}
       <section className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-white">Team Gallery</h2>
-            <p className="text-[#8a8a8a] text-sm mt-0.5">
-              {items.length > 0 ? `${items.length} photo${items.length === 1 ? "" : "s & videos"}` : "Share the first one!"}
-            </p>
-          </div>
-          <Link
-            href="/upload"
-            className="flex items-center gap-1.5 text-sm text-[#c4a0e8] hover:text-white transition-colors"
-          >
-            <Camera size={15} />
-            Upload
-          </Link>
-        </div>
-
-        <MediaGrid items={items} />
+        <GalleryView items={items} />
       </section>
     </div>
   );
