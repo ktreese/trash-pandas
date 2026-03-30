@@ -24,6 +24,7 @@ const PURPLE = "#6B35A3";
 const PURPLE_LIGHT = "#c4a0e8";
 const GREEN = "#4ade80";
 const RED = "#f87171";
+const ORANGE = "#fb923c";
 const GRAY = "#5a5a5a";
 const BG = "#131313";
 
@@ -103,7 +104,7 @@ export function BattingAvgChart({ data }: { data: BattingStats[] }) {
           <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" horizontal={false} />
           <XAxis type="number" domain={[0, Math.ceil(maxVal * 10) / 10 + 0.05]} tickFormatter={(v: number) => v.toFixed(3)} tick={{ fill: GRAY, fontSize: 10 }} axisLine={false} />
           <YAxis type="category" dataKey="name" tick={{ fill: "#b0b0b0", fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
-          <Tooltip content={({ active, payload }) => {
+          <Tooltip cursor={false} content={({ active, payload }) => {
             if (!active || !payload?.length) return null;
             const d = payload[0].payload;
             return (
@@ -173,7 +174,7 @@ export function PlateDisciplineChart({ data }: { data: BattingStats[] }) {
               return (
                 <Cell
                   key={i}
-                  fill={goodEye ? GREEN : poorEye ? RED : PURPLE_LIGHT}
+                  fill={goodEye ? GREEN : poorEye ? RED : entry.bbPct >= midBB ? PURPLE_LIGHT : ORANGE}
                   fillOpacity={0.85}
                   r={7}
                 />
@@ -206,8 +207,8 @@ export function PlateDisciplineChart({ data }: { data: BattingStats[] }) {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center justify-center h-7 w-7 rounded-full shrink-0" style={{ backgroundColor: `${PURPLE_LIGHT}20`, border: `1.5px solid ${PURPLE_LIGHT}` }}>
-              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: PURPLE_LIGHT }} />
+            <span className="inline-flex items-center justify-center h-7 w-7 rounded-full shrink-0" style={{ backgroundColor: `${ORANGE}20`, border: `1.5px solid ${ORANGE}` }}>
+              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: ORANGE }} />
             </span>
             <div>
               <span className="text-[#e0e0e0] text-[11px] font-semibold block">Aggressive hitter</span>
@@ -253,7 +254,7 @@ export function ExtraBasePowerChart({ data }: { data: BattingStats[] }) {
           <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" horizontal={false} />
           <XAxis type="number" allowDecimals={false} tick={{ fill: GRAY, fontSize: 10 }} axisLine={false} />
           <YAxis type="category" dataKey="name" tick={{ fill: "#b0b0b0", fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
-          <Tooltip content={CustomTooltip} />
+          <Tooltip cursor={false} content={CustomTooltip} />
           <Bar dataKey="2B" stackId="xbh" fill="#7c3aed" radius={[0, 0, 0, 0]} maxBarSize={22} name="Doubles" />
           <Bar dataKey="3B" stackId="xbh" fill="#a78bfa" radius={[0, 0, 0, 0]} maxBarSize={22} name="Triples" />
           <Bar dataKey="HR" stackId="xbh" fill={PURPLE_LIGHT} radius={[0, 4, 4, 0]} maxBarSize={22} name="Home Runs" />
@@ -287,7 +288,7 @@ export function PitcherDualChart({ data }: { data: PitchingStats[] }) {
           <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" horizontal={false} />
           <XAxis type="number" tick={{ fill: GRAY, fontSize: 10 }} axisLine={false} />
           <YAxis type="category" dataKey="name" tick={{ fill: "#b0b0b0", fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
-          <Tooltip content={({ active, payload }) => {
+          <Tooltip cursor={false} content={({ active, payload }) => {
             if (!active || !payload?.length) return null;
             const d = payload[0].payload;
             return (
@@ -332,7 +333,7 @@ export function KBBRatioChart({ data }: { data: PitchingStats[] }) {
           <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" horizontal={false} />
           <XAxis type="number" tick={{ fill: GRAY, fontSize: 10 }} axisLine={false} tickFormatter={(v: number) => v.toFixed(1)} />
           <YAxis type="category" dataKey="name" tick={{ fill: "#b0b0b0", fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
-          <Tooltip content={({ active, payload }) => {
+          <Tooltip cursor={false} content={({ active, payload }) => {
             if (!active || !payload?.length) return null;
             const d = payload[0].payload;
             return (
@@ -383,7 +384,7 @@ export function RunsTrendChart({ data }: { data: GameResult[] }) {
           <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" />
           <XAxis dataKey="date" tick={{ fill: GRAY, fontSize: 10 }} axisLine={false} />
           <YAxis tick={{ fill: GRAY, fontSize: 10 }} axisLine={false} />
-          <Tooltip contentStyle={{ backgroundColor: BG, border: "1px solid #2a2a2a", borderRadius: 8, fontSize: 12 }} itemStyle={{ color: "#b0b0b0" }} labelStyle={{ color: "white", fontWeight: 600 }} />
+          <Tooltip cursor={false} contentStyle={{ backgroundColor: BG, border: "1px solid #2a2a2a", borderRadius: 8, fontSize: 12 }} itemStyle={{ color: "#b0b0b0" }} labelStyle={{ color: "white", fontWeight: 600 }} />
           <Line type="monotone" dataKey="Runs Scored" stroke={PURPLE_LIGHT} strokeWidth={2.5} dot={{ fill: PURPLE_LIGHT, r: 4 }} activeDot={{ r: 6 }} />
           <Line type="monotone" dataKey="Runs Allowed" stroke={RED} strokeWidth={2} strokeDasharray="4 4" dot={{ fill: RED, r: 3 }} activeDot={{ r: 5 }} />
           <Legend wrapperStyle={{ fontSize: 11, color: GRAY, paddingTop: 8 }} />
