@@ -1,4 +1,5 @@
 export function BaseballIcon({ size = 24, className = "" }: { size?: number; className?: string }) {
+  const s = "#cc1111";
   return (
     <svg
       width={size}
@@ -12,38 +13,65 @@ export function BaseballIcon({ size = 24, className = "" }: { size?: number; cla
 
       {/* Left seam — curved C shape */}
       <path
-        d="M18 3.5C12 7 8 13 8 24C8 35 12 41 18 44.5"
-        stroke="#cc1111"
-        strokeWidth="2"
+        d="M17 3C11 7.5 7.5 14 7.5 24C7.5 34 11 40.5 17 45"
+        stroke={s}
+        strokeWidth="1.5"
         strokeLinecap="round"
         fill="none"
       />
       {/* Right seam — mirrored C shape */}
       <path
-        d="M30 3.5C36 7 40 13 40 24C40 35 36 41 30 44.5"
-        stroke="#cc1111"
-        strokeWidth="2"
+        d="M31 3C37 7.5 40.5 14 40.5 24C40.5 34 37 40.5 31 45"
+        stroke={s}
+        strokeWidth="1.5"
         strokeLinecap="round"
         fill="none"
       />
 
-      {/* Left seam stitches — perpendicular to the seam curve */}
-      <line x1="14.5" y1="8"  x2="17.5" y2="10"  stroke="#cc1111" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="11.5" y1="13" x2="14.5" y2="14.5" stroke="#cc1111" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="10"   y1="19" x2="13"   y2="19.5" stroke="#cc1111" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="10"   y1="24" x2="13"   y2="24"   stroke="#cc1111" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="10"   y1="29" x2="13"   y2="28.5" stroke="#cc1111" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="11.5" y1="34" x2="14.5" y2="33"   stroke="#cc1111" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="14.5" y1="39" x2="17.5" y2="37.5" stroke="#cc1111" strokeWidth="1.2" strokeLinecap="round" />
+      {/* Left seam V-stitches — paired lines straddling the seam */}
+      {/* Each stitch is two short lines forming a V across the seam */}
+      <line x1="13"  y1="6"   x2="16"  y2="7.5"  stroke={s} strokeWidth="1" strokeLinecap="round" />
+      <line x1="13"  y1="9"   x2="16"  y2="7.5"  stroke={s} strokeWidth="1" strokeLinecap="round" />
 
-      {/* Right seam stitches */}
-      <line x1="33.5" y1="8"  x2="30.5" y2="10"  stroke="#cc1111" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="36.5" y1="13" x2="33.5" y2="14.5" stroke="#cc1111" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="38"   y1="19" x2="35"   y2="19.5" stroke="#cc1111" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="38"   y1="24" x2="35"   y2="24"   stroke="#cc1111" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="38"   y1="29" x2="35"   y2="28.5" stroke="#cc1111" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="36.5" y1="34" x2="33.5" y2="33"   stroke="#cc1111" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="33.5" y1="39" x2="30.5" y2="37.5" stroke="#cc1111" strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="10"  y1="11"  x2="13"  y2="12.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+      <line x1="10"  y1="14"  x2="13"  y2="12.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+
+      <line x1="8.5" y1="17"  x2="11.5" y2="18.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+      <line x1="8.5" y1="20"  x2="11.5" y2="18.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+
+      <line x1="8"   y1="22"  x2="11"  y2="24"   stroke={s} strokeWidth="1" strokeLinecap="round" />
+      <line x1="8"   y1="26"  x2="11"  y2="24"   stroke={s} strokeWidth="1" strokeLinecap="round" />
+
+      <line x1="8.5" y1="28"  x2="11.5" y2="29.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+      <line x1="8.5" y1="31"  x2="11.5" y2="29.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+
+      <line x1="10"  y1="34"  x2="13"  y2="35.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+      <line x1="10"  y1="37"  x2="13"  y2="35.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+
+      <line x1="13"  y1="39"  x2="16"  y2="40.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+      <line x1="13"  y1="42"  x2="16"  y2="40.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+
+      {/* Right seam V-stitches — mirrored */}
+      <line x1="35"  y1="6"   x2="32"  y2="7.5"  stroke={s} strokeWidth="1" strokeLinecap="round" />
+      <line x1="35"  y1="9"   x2="32"  y2="7.5"  stroke={s} strokeWidth="1" strokeLinecap="round" />
+
+      <line x1="38"  y1="11"  x2="35"  y2="12.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+      <line x1="38"  y1="14"  x2="35"  y2="12.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+
+      <line x1="39.5" y1="17" x2="36.5" y2="18.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+      <line x1="39.5" y1="20" x2="36.5" y2="18.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+
+      <line x1="40"  y1="22"  x2="37"  y2="24"   stroke={s} strokeWidth="1" strokeLinecap="round" />
+      <line x1="40"  y1="26"  x2="37"  y2="24"   stroke={s} strokeWidth="1" strokeLinecap="round" />
+
+      <line x1="39.5" y1="28" x2="36.5" y2="29.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+      <line x1="39.5" y1="31" x2="36.5" y2="29.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+
+      <line x1="38"  y1="34"  x2="35"  y2="35.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+      <line x1="38"  y1="37"  x2="35"  y2="35.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+
+      <line x1="35"  y1="39"  x2="32"  y2="40.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
+      <line x1="35"  y1="42"  x2="32"  y2="40.5" stroke={s} strokeWidth="1" strokeLinecap="round" />
     </svg>
   );
 }

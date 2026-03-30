@@ -1,17 +1,10 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ChevronRight, TrendingUp, Target, Zap, Award } from "lucide-react";
+import { ArrowLeft, ChevronRight, TrendingUp, Target, Zap, Award, Loader2 } from "lucide-react";
 import { BaseballIcon, BaseballDiamond, BaseballSeams } from "@/components/BaseballSvg";
-import {
-  battingStats,
-  pitchingStats,
-  gameLog,
-  gameBoxScores,
-  season,
-} from "@/lib/stats";
-import type { GameResult } from "@/lib/stats";
+import type { BattingStats, PitchingStats, GameResult, GameBoxScore } from "@/lib/stats";
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
@@ -249,6 +242,26 @@ function BoxScoreTable({
 export default function StatsPage() {
   const [selectedGame, setSelectedGame] = useState<number | null>(null);
   const [tab, setTab] = useState<"batting" | "pitching">("batting");
+  const [loading, setLoading] = useState(true);
+  const [seasonName, setSeasonName] = useState("Spring 2026");
+  const [battingStats, setBattingStats] = useState<BattingStats[]>([]);
+  const [pitchingStats, setPitchingStats] = useState<PitchingStats[]>([]);
+  const [gameLog, setGameLog] = useState<GameResult[]>([]);
+  const [gameBoxScores, setGameBoxScores] = useState<Record<number, GameBoxScore>>({});
+
+  useEffect(() => {
+    fetch("/api/stats")
+      .then((r) => r.json())
+      .then((data) => {
+        setSeasonName(data.season);
+        setBattingStats(data.batting);
+        setPitchingStats(data.pitching);
+        setGameLog(data.gameLog);
+        setGameBoxScores(data.gameBoxScores);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleGameClick = useCallback((id: number) => {
     setSelectedGame(id);
@@ -267,24 +280,24 @@ export default function StatsPage() {
         const dateDiff = new Date(a.date).getTime() - new Date(b.date).getTime();
         return dateDiff !== 0 ? dateDiff : a.id - b.id;
       }),
-    []
+    [gameLog]
   );
 
   const record = useMemo(() => {
     const w = gameLog.filter((g) => g.result === "W").length;
     const l = gameLog.filter((g) => g.result === "L").length;
     return `${w}-${l}`;
-  }, []);
+  }, [gameLog]);
 
   const teamAvg = useMemo(() => {
     const h = battingStats.reduce((s, p) => s + p.h, 0);
     const ab = battingStats.reduce((s, p) => s + p.ab, 0);
     return ab > 0 ? (h / ab).toFixed(3).replace(/^0/, "") : ".000";
-  }, []);
+  }, [battingStats]);
 
-  const totalRuns = useMemo(() => gameLog.reduce((s, g) => s + g.runsFor, 0), []);
-  const totalRBI = useMemo(() => battingStats.reduce((s, p) => s + p.rbi, 0), []);
-  const totalSB = useMemo(() => battingStats.reduce((s, p) => s + p.sb, 0), []);
+  const totalRuns = useMemo(() => gameLog.reduce((s, g) => s + g.runsFor, 0), [gameLog]);
+  const totalRBI = useMemo(() => battingStats.reduce((s, p) => s + p.rbi, 0), [battingStats]);
+  const totalSB = useMemo(() => battingStats.reduce((s, p) => s + p.sb, 0), [battingStats]);
 
   const leaders = useMemo(() => {
     const batSorted = [...battingStats].sort(
@@ -305,7 +318,7 @@ export default function StatsPage() {
       era: eraSorted[0],
       so: soSorted[0],
     };
-  }, []);
+  }, [battingStats, pitchingStats]);
 
   // ─── Season batting/pitching leaders for table highlighting ────
 
@@ -320,7 +333,7 @@ export default function StatsPage() {
       bb: leader(battingStats, "bb"),
       sb: leader(battingStats, "sb"),
     }),
-    []
+    [battingStats]
   );
 
   // ─── Game detail data ──────────────────────────────────────────
@@ -385,7 +398,7 @@ export default function StatsPage() {
         p.hbp,
         `${p.qabPct}%`,
       ]),
-    []
+    [battingStats]
   );
 
   const seasonBattingHighlights = useMemo(() => {
@@ -415,8 +428,35 @@ export default function StatsPage() {
         p.era,
         p.whip,
       ]),
-    []
+    [pitchingStats]
   );
+
+  if (loading) {
+    return (
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 flex items-center justify-center min-h-[50vh]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 size={28} className="text-[#6B35A3] animate-spin" />
+          <span className="text-[#6a6a6a] text-sm">Loading stats...</span>
+        </div>
+      </main>
+    );
+  }
+
+  const hasData = battingStats.length > 0 || gameLog.length > 0;
+
+  if (!hasData) {
+    return (
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 flex items-center justify-center min-h-[50vh]">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <BaseballIcon size={48} />
+          <h1 className="text-2xl font-bold text-white">No Stats Yet</h1>
+          <p className="text-[#6a6a6a] text-sm max-w-md">
+            Season and game stats will appear here once uploaded by a team admin.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
@@ -437,7 +477,7 @@ export default function StatsPage() {
                 <h1 className="text-3xl font-bold text-white">Team Stats</h1>
               </div>
               <p className="text-[#6a6a6a] text-sm ml-[40px]">
-                Trash Pandas Howard 14U · {season}
+                Trash Pandas Howard 14U · {seasonName}
               </p>
             </div>
 

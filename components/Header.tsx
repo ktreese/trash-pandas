@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, X, Camera } from "lucide-react";
+import { Menu, X, Camera, Shield } from "lucide-react";
 
 const navLinks = [
   { href: "/", label: "Gallery" },
@@ -60,6 +60,13 @@ export default function Header() {
             >
               <Camera size={16} />
               Share a Photo
+            </Link>
+            <Link
+              href="/admin"
+              className="ml-1 p-2 rounded-lg text-[#333] hover:text-[#555] transition-colors"
+              title="Admin"
+            >
+              <Shield size={14} />
             </Link>
           </nav>
 

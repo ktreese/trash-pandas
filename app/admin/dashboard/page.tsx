@@ -1,5 +1,7 @@
 import { getAllMedia, getStorageStats } from "@/lib/media";
+import { getStatsManifest } from "@/lib/stats-store";
 import AdminMediaGrid from "@/components/admin/AdminMediaGrid";
+import AdminStatsManager from "@/components/admin/AdminStatsManager";
 import StorageBar from "@/components/admin/StorageBar";
 import LogoutButton from "@/components/admin/LogoutButton";
 import Image from "next/image";
@@ -9,9 +11,14 @@ export const dynamic = "force-dynamic";
 export default async function AdminDashboardPage() {
   let items: Awaited<ReturnType<typeof getAllMedia>> = [];
   let storage = { usedBytes: 0, blobCount: 0 };
+  let statsManifest: Awaited<ReturnType<typeof getStatsManifest>> | null = null;
 
   try {
-    [items, storage] = await Promise.all([getAllMedia(), getStorageStats()]);
+    [items, storage, statsManifest] = await Promise.all([
+      getAllMedia(),
+      getStorageStats(),
+      getStatsManifest(),
+    ]);
   } catch {
     items = [];
   }
@@ -51,6 +58,8 @@ export default async function AdminDashboardPage() {
         </div>
 
         <AdminMediaGrid items={items} />
+
+        <AdminStatsManager initialManifest={statsManifest} />
       </main>
     </div>
   );
