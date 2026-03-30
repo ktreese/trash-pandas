@@ -192,8 +192,8 @@ export function PlateDisciplineChart({ data }: { data: BattingStats[] }) {
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: GREEN }} />
             </span>
             <div>
-              <span className="text-white text-[11px] font-medium block">Patient &amp; selective</span>
-              <span className="text-[#4a4a4a] text-[10px]">Walks more, strikes out less</span>
+              <span className="text-[#e0e0e0] text-[11px] font-semibold block">Patient &amp; selective</span>
+              <span className="text-[#8a8a8a] text-[10px]">Walks more, strikes out less</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -201,8 +201,8 @@ export function PlateDisciplineChart({ data }: { data: BattingStats[] }) {
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: RED }} />
             </span>
             <div>
-              <span className="text-white text-[11px] font-medium block">Chasing pitches</span>
-              <span className="text-[#4a4a4a] text-[10px]">Swings at bad pitches, strikes out</span>
+              <span className="text-[#e0e0e0] text-[11px] font-semibold block">Chasing pitches</span>
+              <span className="text-[#8a8a8a] text-[10px]">Swings at bad pitches, strikes out</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -210,8 +210,8 @@ export function PlateDisciplineChart({ data }: { data: BattingStats[] }) {
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: PURPLE_LIGHT }} />
             </span>
             <div>
-              <span className="text-white text-[11px] font-medium block">Aggressive hitter</span>
-              <span className="text-[#4a4a4a] text-[10px]">Swings early, makes contact</span>
+              <span className="text-[#e0e0e0] text-[11px] font-semibold block">Aggressive hitter</span>
+              <span className="text-[#8a8a8a] text-[10px]">Swings early, makes contact</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -219,8 +219,8 @@ export function PlateDisciplineChart({ data }: { data: BattingStats[] }) {
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: PURPLE_LIGHT }} />
             </span>
             <div>
-              <span className="text-white text-[11px] font-medium block">High volume</span>
-              <span className="text-[#4a4a4a] text-[10px]">Works deep counts both ways</span>
+              <span className="text-[#e0e0e0] text-[11px] font-semibold block">High volume</span>
+              <span className="text-[#8a8a8a] text-[10px]">Works deep counts both ways</span>
             </div>
           </div>
         </div>
