@@ -2,9 +2,17 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ChevronRight, TrendingUp, Target, Zap, Award, Loader2 } from "lucide-react";
+import { ArrowLeft, ChevronRight, TrendingUp, Target, Zap, Award, Loader2, BarChart3 } from "lucide-react";
 import { BaseballIcon, BaseballDiamond, BaseballSeams } from "@/components/BaseballSvg";
 import type { BattingStats, PitchingStats, GameResult, GameBoxScore } from "@/lib/stats";
+import {
+  BattingAvgChart,
+  PlateDisciplineChart,
+  ExtraBasePowerChart,
+  PitcherDualChart,
+  KBBRatioChart,
+  RunsTrendChart,
+} from "@/components/stats/Charts";
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
@@ -86,12 +94,22 @@ function GameCard({
   game,
   index,
   onClick,
+  boxScore,
 }: {
   game: GameResult;
   index: number;
   onClick: () => void;
+  boxScore?: GameBoxScore;
 }) {
   const isWin = game.result === "W";
+
+  // Earned runs "what if" calculation
+  const earnedAgainst = boxScore
+    ? boxScore.pitching.reduce((s, p) => s + p.er, 0)
+    : null;
+  const unearned = earnedAgainst !== null ? game.runsAgainst - earnedAgainst : 0;
+  const wouldWin = earnedAgainst !== null && game.runsFor > earnedAgainst;
+  const flipped = earnedAgainst !== null && game.result !== "W" && wouldWin;
 
   return (
     <motion.button
@@ -101,13 +119,17 @@ function GameCard({
       whileHover={{ y: -4, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="relative group text-left w-full overflow-hidden rounded-2xl border border-[#2a2a2a] bg-[#131313] hover:border-[#6B35A3]/40 transition-colors cursor-pointer"
+      className={`relative group text-left w-full overflow-hidden rounded-2xl border bg-[#131313] hover:border-[#6B35A3]/40 transition-colors cursor-pointer ${
+        flipped ? "border-green-700/30" : "border-[#2a2a2a]"
+      }`}
     >
       {/* Top accent line */}
       <div
         className={`h-1 w-full ${
           isWin
             ? "bg-gradient-to-r from-green-600/60 to-green-500/20"
+            : flipped
+            ? "bg-gradient-to-r from-green-600/30 via-red-600/30 to-red-500/10"
             : "bg-gradient-to-r from-red-600/40 to-red-500/10"
         }`}
       />
@@ -152,6 +174,36 @@ function GameCard({
           </div>
         </div>
 
+        {/* Earned runs "what if" */}
+        {earnedAgainst !== null && (
+          <div className={`mt-2 rounded-lg px-3 py-2 text-center ${
+            flipped ? "bg-green-900/15 border border-green-800/20" : "bg-[#0d0d0d]"
+          }`}>
+            <span className="text-[#5a5a5a] text-[9px] uppercase tracking-widest">
+              Without errors
+            </span>
+            <div className="flex items-center justify-center gap-2 mt-0.5">
+              {flipped && (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-green-900/30 text-green-400">
+                  W
+                </span>
+              )}
+              <span className={`text-xs font-mono font-bold ${flipped ? "text-green-400" : "text-[#6a6a6a]"}`}>
+                {game.runsFor}–{earnedAgainst}
+              </span>
+              {unearned > 0 ? (
+                <span className="text-[#e88a8a] text-[10px]">
+                  ({unearned} unearned)
+                </span>
+              ) : (
+                <span className="text-[#3a3a3a] text-[10px]">
+                  (all earned)
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Footer: hits + errors + arrow */}
         <div className="flex items-center justify-between mt-3">
           <div className="flex gap-3 text-[11px]">
@@ -180,11 +232,11 @@ function GameCard({
 function BoxScoreTable({
   headers,
   rows,
-  highlightKeys,
+  highlightCells,
 }: {
   headers: string[];
   rows: (string | number)[][];
-  highlightKeys?: Set<number>;
+  highlightCells?: Set<string>; // "row-col" keys for per-cell leader highlighting
 }) {
   return (
     <div className="overflow-x-auto rounded-xl border border-[#2a2a2a]">
@@ -221,7 +273,7 @@ function BoxScoreTable({
                       ? "text-white font-medium"
                       : ci === 0
                       ? "text-[#5a5a5a]"
-                      : highlightKeys?.has(ci)
+                      : highlightCells?.has(`${ri}-${ci}`)
                       ? "text-[#c4a0e8] font-semibold"
                       : "text-[#b0b0b0]"
                   }`}
@@ -402,14 +454,15 @@ export default function StatsPage() {
   );
 
   const seasonBattingHighlights = useMemo(() => {
-    const highlights = new Set<number>();
-    battingStats.forEach((p) => {
-      if (Number(p.avg) === battingLeaders.avg && Number(p.avg) > 0) highlights.add(5);
-      if (Number(p.obp) === battingLeaders.obp && Number(p.obp) > 0) highlights.add(6);
-      if (Number(p.ops) === battingLeaders.ops && Number(p.ops) > 0) highlights.add(7);
+    const highlights = new Set<string>();
+    // Column indices: 5=AVG, 6=OBP, 7=OPS
+    battingStats.forEach((p, ri) => {
+      if (Number(p.avg) === battingLeaders.avg && Number(p.avg) > 0) highlights.add(`${ri}-5`);
+      if (Number(p.obp) === battingLeaders.obp && Number(p.obp) > 0) highlights.add(`${ri}-6`);
+      if (Number(p.ops) === battingLeaders.ops && Number(p.ops) > 0) highlights.add(`${ri}-7`);
     });
     return highlights;
-  }, [battingLeaders]);
+  }, [battingStats, battingLeaders]);
 
   const seasonPitchingRows = useMemo(
     () =>
@@ -542,21 +595,71 @@ export default function StatsPage() {
 
             <BaseballSeams className="text-[#6B35A3] mb-8" />
 
+            {/* Analytics Charts */}
+            <h2 className="text-white text-lg font-semibold mb-4 flex items-center gap-2">
+              <BarChart3 size={18} className="text-[#6B35A3]" />
+              Analytics
+            </h2>
+
+            {/* Team Charts Row */}
+            {gameLog.length > 0 && (
+              <div className="mb-6">
+                <RunsTrendChart data={gameLog} />
+              </div>
+            )}
+
+            {/* Hitting Row 1: AVG + Plate Discipline */}
+            {battingStats.length > 0 && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                <BattingAvgChart data={battingStats} />
+                <PlateDisciplineChart data={battingStats} />
+              </div>
+            )}
+
+            {/* Hitting Row 2: Extra-Base Power */}
+            {battingStats.length > 0 && (
+              <div className="mb-6">
+                <ExtraBasePowerChart data={battingStats} />
+              </div>
+            )}
+
+            {/* Pitching Row: ERA & WHIP + K/BB Ratio */}
+            {pitchingStats.length > 0 && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-10">
+                <PitcherDualChart data={pitchingStats} />
+                <KBBRatioChart data={pitchingStats} />
+              </div>
+            )}
+
+            <BaseballSeams className="text-[#6B35A3] mb-8" />
+
             {/* Game Log */}
             <h2 className="text-white text-lg font-semibold mb-4 flex items-center gap-2">
               <BaseballIcon size={18} className="text-[#6B35A3]" />
               Game Log
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               {sortedGameLog.map((game, i) => (
                 <GameCard
                   key={game.id}
                   game={game}
                   index={i}
                   onClick={() => handleGameClick(game.id)}
+                  boxScore={gameBoxScores[game.id]}
                 />
               ))}
             </div>
+            <p className="text-[#3a3a3a] text-[11px] mb-10 group/footnote">
+              * &ldquo;Without errors&rdquo; shows what if our defense didn&apos;t make errors.{" "}
+              <span className="relative inline-block">
+                <span className="text-[#5a5a5a] underline decoration-dotted underline-offset-2 cursor-help">
+                  Why only ours?
+                </span>
+                <span className="invisible group-hover/footnote:visible absolute bottom-full left-0 mb-2 w-64 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-[11px] text-[#b0b0b0] shadow-xl z-10 leading-relaxed">
+                  Opponent pitching earned runs aren&apos;t available in the GameChanger CSV export, so we can&apos;t determine how many of our runs were unearned (scored because of their errors).
+                </span>
+              </span>
+            </p>
 
             <BaseballSeams className="text-[#6B35A3] mb-8" />
 
@@ -590,7 +693,7 @@ export default function StatsPage() {
                   "H", "2B", "3B", "HR", "RBI", "R", "BB", "K", "SB", "HBP", "QAB%",
                 ]}
                 rows={seasonBattingRows}
-                highlightKeys={seasonBattingHighlights}
+                highlightCells={seasonBattingHighlights}
               />
             )}
             {tab === "pitching" && (
