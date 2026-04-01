@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, type ChangeEvent, type DragEv
 import Image from "next/image";
 import { Camera, Video, X, Upload, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { upload } from "@vercel/blob/client";
 
 type UploadState = "idle" | "uploading" | "success" | "error";
 
@@ -85,24 +86,38 @@ export default function UploadForm() {
     try {
       for (let i = 0; i < previews.length; i++) {
         const { file } = previews[i];
-        const filename = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
+        const filename = `uploads/${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
 
-        // Stream file directly to our Edge API route — no CORS issues, no size limit.
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          headers: {
-            "Content-Type": file.type,
-            "x-filename": encodeURIComponent(filename),
-            "x-caption": encodeURIComponent(caption.trim()),
-            "x-uploader": encodeURIComponent(uploaderName.trim()),
-            "x-size": String(file.size),
+        // Upload directly to Vercel Blob from the browser (bypasses 4.5 MB function limit).
+        const blob = await upload(filename, file, {
+          access: "public",
+          handleUploadUrl: "/api/upload",
+          multipart: file.size > 4 * 1024 * 1024,
+          onUploadProgress: ({ percentage }) => {
+            // Weight each file equally in total progress.
+            const base = (i / previews.length) * 100;
+            const slice = (1 / previews.length) * 100;
+            setProgress(Math.round(base + (percentage / 100) * slice));
           },
-          body: file,
         });
 
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({ error: "Upload failed" }));
-          throw new Error(err.error ?? "Upload failed");
+        // Save metadata via a small JSON POST (no body-size concern).
+        const metaRes = await fetch("/api/upload/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            blob_url: blob.url,
+            blob_pathname: blob.pathname,
+            content_type: blob.contentType,
+            size: file.size,
+            caption: caption.trim() || null,
+            uploader_name: uploaderName.trim() || null,
+          }),
+        });
+
+        if (!metaRes.ok) {
+          const err = await metaRes.json().catch(() => ({ error: "Failed to save metadata" }));
+          throw new Error(err.error ?? "Failed to save metadata");
         }
 
         setProgress(Math.round(((i + 1) / previews.length) * 100));
