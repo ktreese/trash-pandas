@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
-import { Camera, FilterX, CheckSquare } from "lucide-react";
+import { Camera, FilterX, Download } from "lucide-react";
 import MediaGrid from "./MediaGrid";
 import AuthorSection from "./AuthorSection";
 import GalleryControls from "./GalleryControls";
@@ -182,10 +182,11 @@ export default function GalleryView({ items }: GalleryViewProps) {
           {items.length > 0 && !selectMode && (
             <button
               onClick={enterSelectMode}
-              className="flex items-center gap-1.5 text-sm text-[#b8b8b8] hover:text-white transition-colors"
+              className="flex items-center gap-1.5 text-sm font-medium rounded-lg px-3 py-1.5 bg-[#1a1a1a] border border-[#2a2a2a] text-[#b8b8b8] hover:border-[#6B35A3] hover:text-white transition-colors"
+              title="Select photos to download"
             >
-              <CheckSquare size={15} />
-              Select
+              <Download size={14} />
+              Download
             </button>
           )}
           <Link
