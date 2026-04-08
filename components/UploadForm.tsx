@@ -164,7 +164,6 @@ export default function UploadForm() {
           type="file"
           accept={ACCEPTED}
           multiple
-          capture="environment"
           className="hidden"
           onChange={onFileChange}
         />
