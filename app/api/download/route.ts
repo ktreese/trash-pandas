@@ -2,6 +2,41 @@ import JSZip from "jszip";
 
 export const runtime = "nodejs";
 
+// ── Single-file download ──────────────────────────────────────────
+// Proxies a Vercel Blob URL server-side so the browser receives a
+// proper Content-Disposition: attachment response and actually
+// downloads the file instead of opening it (cross-origin workaround).
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const url = searchParams.get("url");
+  const filename = searchParams.get("filename") ?? "download";
+
+  if (!url) {
+    return new Response(JSON.stringify({ error: "Missing url param" }), { status: 400 });
+  }
+
+  try {
+    const upstream = await fetch(url);
+    if (!upstream.ok) throw new Error(`Upstream fetch failed: ${upstream.status}`);
+
+    const contentType = upstream.headers.get("content-type") ?? "application/octet-stream";
+    const buffer = await upstream.arrayBuffer();
+
+    return new Response(buffer, {
+      status: 200,
+      headers: {
+        "Content-Type": contentType,
+        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Content-Length": String(buffer.byteLength),
+        "Cache-Control": "private, no-store",
+      },
+    });
+  } catch (err) {
+    console.error("[download] single-file error:", err);
+    return new Response(JSON.stringify({ error: "Failed to fetch file" }), { status: 500 });
+  }
+}
+
 interface DownloadItem {
   id: string;
   blob_url: string;

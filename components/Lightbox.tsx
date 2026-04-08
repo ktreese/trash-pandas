@@ -38,6 +38,11 @@ export default function Lightbox({ items, index, onClose, onPrev, onNext }: Ligh
 
   const isVideo = item.content_type.startsWith("video/");
 
+  // Derive a clean filename from the stored pathname (strips timestamp prefix)
+  const rawFilename = item.blob_pathname.split("/").pop() ?? "download";
+  const cleanFilename = rawFilename.replace(/^\d+-/, "");
+  const downloadHref = `/api/download?url=${encodeURIComponent(item.blob_url)}&filename=${encodeURIComponent(cleanFilename)}`;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 animate-fade-in"
@@ -55,8 +60,7 @@ export default function Lightbox({ items, index, onClose, onPrev, onNext }: Ligh
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-4">
           <a
-            href={item.blob_url}
-            download
+            href={downloadHref}
             onClick={(e) => e.stopPropagation()}
             className="p-2 rounded-lg text-[#b8b8b8] hover:text-white hover:bg-white/10 transition-colors"
             aria-label="Download"
