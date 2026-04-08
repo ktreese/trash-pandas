@@ -107,8 +107,7 @@ export function MediaCard({
       {/* Hover download button (bottom-right, only outside select mode) */}
       {!selectMode && (
         <a
-          href={item.blob_url}
-          download
+          href={`/api/download?url=${encodeURIComponent(item.blob_url)}&filename=${encodeURIComponent(item.blob_pathname.split("/").pop()?.replace(/^\d+-/, "") ?? "download")}`}
           onClick={(e) => { e.stopPropagation(); onSingleDownload(e); }}
           className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-black/70 hover:bg-[#6B35A3] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-md"
           aria-label="Download"
