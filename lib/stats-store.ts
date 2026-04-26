@@ -57,7 +57,9 @@ export async function getStatsManifest(): Promise<StatsManifest> {
   try {
     const { blobs } = await list({ prefix: MANIFEST_PATH });
     if (blobs.length === 0) return { season: null, games: [] };
-    const res = await fetch(blobs[0].downloadUrl, { cache: "no-store" });
+    // Append timestamp to bust Vercel CDN cache — cache: "no-store" only skips
+    // Next.js's fetch cache, not the edge CDN layer in front of Blob storage.
+    const res = await fetch(`${blobs[0].url}?t=${Date.now()}`, { cache: "no-store" });
     if (!res.ok) return { season: null, games: [] };
     return (await res.json()) as StatsManifest;
   } catch {
@@ -110,6 +112,21 @@ export async function uploadGameCsv(
   }
 ): Promise<StatsManifest> {
   const manifest = await getStatsManifest();
+
+  // Format date first so we can check for duplicates before doing any work
+  const dEarly = new Date(meta.date + "T00:00:00");
+  const dateDisplayEarly = dEarly.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+  const duplicate = manifest.games.find(
+    (g) => g.date === dateDisplayEarly && g.opponent.toLowerCase() === meta.opponent.toLowerCase()
+  );
+  if (duplicate) {
+    throw new Error(`A game vs ${meta.opponent} on ${dateDisplayEarly} already exists (game #${duplicate.id}). Delete it first if you want to re-upload.`);
+  }
+
   const nextId = manifest.games.length > 0
     ? Math.max(...manifest.games.map((g) => g.id)) + 1
     : 1;
@@ -125,13 +142,8 @@ export async function uploadGameCsv(
   const result: "W" | "L" | "T" =
     runsFor > runsAgainst ? "W" : runsFor < runsAgainst ? "L" : "T";
 
-  // Format date for display
-  const d = new Date(meta.date + "T00:00:00");
-  const dateDisplay = d.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
+  const d = dEarly;
+  const dateDisplay = dateDisplayEarly;
   const dateShort = `${d.getMonth() + 1}/${d.getDate()}`;
 
   // Store raw CSV
