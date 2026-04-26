@@ -620,7 +620,7 @@ export default function StatsPage() {
             {battingStats.length > 0 && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
                 <BattingAvgChart data={battingStats} />
-                <PlateDisciplineChart data={battingStats} />
+                <PlateDisciplineChart data={battingStats} gameLog={gameLog} gameBoxScores={gameBoxScores} />
               </div>
             )}
 

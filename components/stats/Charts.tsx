@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect, useMemo } from "react";
+import { X } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -127,7 +129,26 @@ export function BattingAvgChart({ data }: { data: BattingStats[] }) {
 
 // ─── 2. Plate Discipline (BB% vs K%) ────────────────────────────
 
-export function PlateDisciplineChart({ data }: { data: BattingStats[] }) {
+export function PlateDisciplineChart({
+  data,
+  gameLog,
+  gameBoxScores,
+}: {
+  data: BattingStats[];
+  gameLog?: GameResult[];
+  gameBoxScores?: Record<number, GameBoxScore>;
+}) {
+  const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!selectedPlayer) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedPlayer(null);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [selectedPlayer]);
+
   const chartData = data
     .filter((p) => p.pa >= 5)
     .map((p) => ({
@@ -143,90 +164,223 @@ export function PlateDisciplineChart({ data }: { data: BattingStats[] }) {
   const midBB = maxBB / 2;
   const midK = maxK / 2;
 
-  return (
-    <ChartCard title="Plate Discipline" subtitle="Walk rate vs strikeout rate (min 5 PA). Hover a dot for player details.">
-      <ResponsiveContainer width="100%" height={300}>
-        <ScatterChart margin={{ left: 10, right: 20, top: 10, bottom: 20 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" />
-          <XAxis type="number" dataKey="bbPct" name="BB%" tickFormatter={(v: number) => `${v.toFixed(0)}%`} tick={{ fill: GRAY, fontSize: 10 }} axisLine={{ stroke: "#2a2a2a" }} label={{ value: "Walk %  →", position: "insideBottom", offset: -12, fill: GRAY, fontSize: 10 }} />
-          <YAxis type="number" dataKey="kPct" name="K%" tickFormatter={(v: number) => `${v.toFixed(0)}%`} tick={{ fill: GRAY, fontSize: 10 }} axisLine={{ stroke: "#2a2a2a" }} label={{ value: "← Strikeout %", angle: -90, position: "insideLeft", offset: 5, fill: GRAY, fontSize: 10 }} />
-          <ReferenceLine x={midBB} stroke="#2a2a2a" strokeDasharray="6 4" />
-          <ReferenceLine y={midK} stroke="#2a2a2a" strokeDasharray="6 4" />
-          <Tooltip content={({ active, payload }) => {
-            if (!active || !payload?.length) return null;
-            const d = payload[0].payload;
-            const goodEye = d.bbPct >= midBB && d.kPct <= midK;
-            const poorEye = d.bbPct < midBB && d.kPct > midK;
-            const label = goodEye ? "Patient & selective" : poorEye ? "Chasing pitches" : d.bbPct >= midBB ? "High volume" : "Aggressive hitter";
-            return (
-              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-xs shadow-xl">
-                <p className="text-white font-semibold">{d.fullName}</p>
-                <p className="text-[#c4a0e8]">Walk %: {d.bbPct.toFixed(1)}%</p>
-                <p className="text-[#e88a8a]">Strikeout %: {d.kPct.toFixed(1)}%</p>
-                <p className="text-[#6a6a6a] mt-1 italic">{label}</p>
-              </div>
-            );
-          }} />
-          <Scatter data={chartData} fill={PURPLE}>
-            {chartData.map((entry, i) => {
-              const goodEye = entry.bbPct >= midBB && entry.kPct <= midK;
-              const poorEye = entry.bbPct < midBB && entry.kPct > midK;
-              return (
-                <Cell
-                  key={i}
-                  fill={goodEye ? GREEN : poorEye ? RED : entry.bbPct >= midBB ? PURPLE_LIGHT : ORANGE}
-                  fillOpacity={0.85}
-                  r={7}
-                />
-              );
-            })}
-          </Scatter>
-        </ScatterChart>
-      </ResponsiveContainer>
+  // Per-game BB%/K% evolution for selected player
+  const playerEvolution = useMemo(() => {
+    if (!selectedPlayer || !gameLog || !gameBoxScores) return [];
+    const sorted = [...gameLog].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime() || a.id - b.id
+    );
+    return sorted.flatMap((g) => {
+      const box = gameBoxScores[g.id];
+      if (!box) return [];
+      const bat = box.batting.find((p) => p.name === selectedPlayer);
+      if (!bat) return [];
+      const pa = bat.ab + bat.bb + bat.hbp;
+      if (pa === 0) return [];
+      return [{
+        game: `vs ${g.opponent}`,
+        date: g.dateShort,
+        bbPct: (bat.bb / pa) * 100,
+        kPct: (bat.so / pa) * 100,
+        bb: bat.bb,
+        k: bat.so,
+        pa,
+      }];
+    });
+  }, [selectedPlayer, gameLog, gameBoxScores]);
 
-      {/* Quadrant guide */}
-      <div className="mt-5 rounded-xl bg-[#0d0d0d] border border-[#1e1e1e] p-4">
-        <p className="text-[#6a6a6a] text-[10px] uppercase tracking-widest font-medium mb-3">Reading the chart</p>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center justify-center h-7 w-7 rounded-full shrink-0" style={{ backgroundColor: `${GREEN}20`, border: `1.5px solid ${GREEN}` }}>
-              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: GREEN }} />
-            </span>
-            <div>
-              <span className="text-[#e0e0e0] text-[11px] font-semibold block">Patient &amp; selective</span>
-              <span className="text-[#8a8a8a] text-[10px]">Walks more, strikes out less</span>
+  const playerSeasonAvgs = useMemo(() => {
+    if (!selectedPlayer) return null;
+    const p = data.find((pl) => pl.name === selectedPlayer);
+    if (!p || p.pa === 0) return null;
+    return {
+      bbPct: (p.bb / p.pa) * 100,
+      kPct: (p.so / p.pa) * 100,
+    };
+  }, [selectedPlayer, data]);
+
+  const hasEvolutionData = gameLog && gameBoxScores;
+
+  return (
+    <>
+      <ChartCard
+        title="Plate Discipline"
+        subtitle={`Walk rate vs strikeout rate (min 5 PA). ${hasEvolutionData ? "Click a dot to see per-game trend." : "Hover a dot for player details."}`}
+      >
+        <ResponsiveContainer width="100%" height={300}>
+          <ScatterChart margin={{ left: 10, right: 20, top: 10, bottom: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" />
+            <XAxis type="number" dataKey="bbPct" name="BB%" tickFormatter={(v: number) => `${v.toFixed(0)}%`} tick={{ fill: GRAY, fontSize: 10 }} axisLine={{ stroke: "#2a2a2a" }} label={{ value: "Walk %  →", position: "insideBottom", offset: -12, fill: GRAY, fontSize: 10 }} />
+            <YAxis type="number" dataKey="kPct" name="K%" tickFormatter={(v: number) => `${v.toFixed(0)}%`} tick={{ fill: GRAY, fontSize: 10 }} axisLine={{ stroke: "#2a2a2a" }} label={{ value: "← Strikeout %", angle: -90, position: "insideLeft", offset: 5, fill: GRAY, fontSize: 10 }} />
+            <ReferenceLine x={midBB} stroke="#2a2a2a" strokeDasharray="6 4" />
+            <ReferenceLine y={midK} stroke="#2a2a2a" strokeDasharray="6 4" />
+            <Tooltip content={({ active, payload }) => {
+              if (!active || !payload?.length) return null;
+              const d = payload[0].payload;
+              const goodEye = d.bbPct >= midBB && d.kPct <= midK;
+              const poorEye = d.bbPct < midBB && d.kPct > midK;
+              const label = goodEye ? "Patient & selective" : poorEye ? "Chasing pitches" : d.bbPct >= midBB ? "High volume" : "Aggressive hitter";
+              return (
+                <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-xs shadow-xl">
+                  <p className="text-white font-semibold">{d.fullName}</p>
+                  <p className="text-[#c4a0e8]">Walk %: {d.bbPct.toFixed(1)}%</p>
+                  <p className="text-[#e88a8a]">Strikeout %: {d.kPct.toFixed(1)}%</p>
+                  <p className="text-[#6a6a6a] mt-1 italic">{label}</p>
+                  {hasEvolutionData && <p className="text-[#4a4a4a] mt-1 text-[10px]">Click to see trend →</p>}
+                </div>
+              );
+            }} />
+            <Scatter
+              data={chartData}
+              fill={PURPLE}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onClick={(dot: any) => hasEvolutionData && setSelectedPlayer(dot.fullName)}
+              style={{ cursor: hasEvolutionData ? "pointer" : "default" }}
+            >
+              {chartData.map((entry, i) => {
+                const goodEye = entry.bbPct >= midBB && entry.kPct <= midK;
+                const poorEye = entry.bbPct < midBB && entry.kPct > midK;
+                return (
+                  <Cell
+                    key={i}
+                    fill={goodEye ? GREEN : poorEye ? RED : entry.bbPct >= midBB ? PURPLE_LIGHT : ORANGE}
+                    fillOpacity={0.85}
+                    r={7}
+                  />
+                );
+              })}
+            </Scatter>
+          </ScatterChart>
+        </ResponsiveContainer>
+
+        {/* Quadrant guide */}
+        <div className="mt-5 rounded-xl bg-[#0d0d0d] border border-[#1e1e1e] p-4">
+          <p className="text-[#6a6a6a] text-[10px] uppercase tracking-widest font-medium mb-3">Reading the chart</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center justify-center h-7 w-7 rounded-full shrink-0" style={{ backgroundColor: `${GREEN}20`, border: `1.5px solid ${GREEN}` }}>
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: GREEN }} />
+              </span>
+              <div>
+                <span className="text-[#e0e0e0] text-[11px] font-semibold block">Patient &amp; selective</span>
+                <span className="text-[#8a8a8a] text-[10px]">Walks more, strikes out less</span>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center justify-center h-7 w-7 rounded-full shrink-0" style={{ backgroundColor: `${RED}20`, border: `1.5px solid ${RED}` }}>
-              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: RED }} />
-            </span>
-            <div>
-              <span className="text-[#e0e0e0] text-[11px] font-semibold block">Chasing pitches</span>
-              <span className="text-[#8a8a8a] text-[10px]">Swings at bad pitches, strikes out</span>
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center justify-center h-7 w-7 rounded-full shrink-0" style={{ backgroundColor: `${RED}20`, border: `1.5px solid ${RED}` }}>
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: RED }} />
+              </span>
+              <div>
+                <span className="text-[#e0e0e0] text-[11px] font-semibold block">Chasing pitches</span>
+                <span className="text-[#8a8a8a] text-[10px]">Swings at bad pitches, strikes out</span>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center justify-center h-7 w-7 rounded-full shrink-0" style={{ backgroundColor: `${ORANGE}20`, border: `1.5px solid ${ORANGE}` }}>
-              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: ORANGE }} />
-            </span>
-            <div>
-              <span className="text-[#e0e0e0] text-[11px] font-semibold block">Aggressive hitter</span>
-              <span className="text-[#8a8a8a] text-[10px]">Swings early, makes contact</span>
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center justify-center h-7 w-7 rounded-full shrink-0" style={{ backgroundColor: `${ORANGE}20`, border: `1.5px solid ${ORANGE}` }}>
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: ORANGE }} />
+              </span>
+              <div>
+                <span className="text-[#e0e0e0] text-[11px] font-semibold block">Aggressive hitter</span>
+                <span className="text-[#8a8a8a] text-[10px]">Swings early, makes contact</span>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center justify-center h-7 w-7 rounded-full shrink-0" style={{ backgroundColor: `${PURPLE_LIGHT}20`, border: `1.5px solid ${PURPLE_LIGHT}` }}>
-              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: PURPLE_LIGHT }} />
-            </span>
-            <div>
-              <span className="text-[#e0e0e0] text-[11px] font-semibold block">High volume</span>
-              <span className="text-[#8a8a8a] text-[10px]">Works deep counts both ways</span>
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center justify-center h-7 w-7 rounded-full shrink-0" style={{ backgroundColor: `${PURPLE_LIGHT}20`, border: `1.5px solid ${PURPLE_LIGHT}` }}>
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: PURPLE_LIGHT }} />
+              </span>
+              <div>
+                <span className="text-[#e0e0e0] text-[11px] font-semibold block">High volume</span>
+                <span className="text-[#8a8a8a] text-[10px]">Works deep counts both ways</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </ChartCard>
+      </ChartCard>
+
+      {/* Plate Discipline Evolution Modal */}
+      {selectedPlayer && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm"
+          onClick={() => setSelectedPlayer(null)}
+        >
+          <div
+            className="bg-[#131313] border border-[#2a2a2a] rounded-2xl p-6 w-full max-w-xl mx-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div className="flex items-start justify-between mb-1">
+              <div>
+                <h3 className="text-white font-semibold text-sm">Plate Discipline — {selectedPlayer}</h3>
+                <p className="text-[#5a5a5a] text-xs mt-0.5">
+                  Per-game BB% and K% trend. Dashed lines = season average.
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedPlayer(null)}
+                className="text-[#5a5a5a] hover:text-white transition-colors ml-4 shrink-0 mt-0.5"
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="mt-4">
+              {playerEvolution.length === 0 ? (
+                <p className="text-[#5a5a5a] text-sm text-center py-10">
+                  No per-game data available for {selectedPlayer}.
+                </p>
+              ) : (
+                <ResponsiveContainer width="100%" height={220}>
+                  <LineChart data={playerEvolution} margin={{ left: 0, right: 16, top: 8, bottom: 36 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" />
+                    <XAxis
+                      dataKey="game"
+                      tick={{ fill: GRAY, fontSize: 9 }}
+                      axisLine={false}
+                      angle={-35}
+                      textAnchor="end"
+                      interval={0}
+                    />
+                    <YAxis
+                      tickFormatter={(v: number) => `${v.toFixed(0)}%`}
+                      tick={{ fill: GRAY, fontSize: 10 }}
+                      axisLine={false}
+                    />
+                    <Tooltip
+                      cursor={false}
+                      content={({ active, payload, label }) => {
+                        if (!active || !payload?.length) return null;
+                        const d = payload[0].payload;
+                        return (
+                          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-xs shadow-xl">
+                            <p className="text-white font-medium mb-1">{label}</p>
+                            <p className="text-[#c4a0e8]">BB%: {d.bbPct.toFixed(1)}% ({d.bb} BB / {d.pa} PA)</p>
+                            <p className="text-[#e88a8a]">K%: {d.kPct.toFixed(1)}% ({d.k} K / {d.pa} PA)</p>
+                          </div>
+                        );
+                      }}
+                    />
+                    {playerSeasonAvgs && (
+                      <>
+                        <ReferenceLine y={playerSeasonAvgs.bbPct} stroke={PURPLE_LIGHT} strokeDasharray="5 3" strokeOpacity={0.5} />
+                        <ReferenceLine y={playerSeasonAvgs.kPct} stroke={RED} strokeDasharray="5 3" strokeOpacity={0.5} />
+                      </>
+                    )}
+                    <Line type="monotone" dataKey="bbPct" stroke={PURPLE_LIGHT} strokeWidth={2} dot={{ fill: PURPLE_LIGHT, r: 4 }} activeDot={{ r: 6 }} name="BB%" />
+                    <Line type="monotone" dataKey="kPct" stroke={RED} strokeWidth={2} dot={{ fill: RED, r: 4 }} activeDot={{ r: 6 }} name="K%" />
+                    <Legend wrapperStyle={{ fontSize: 11, color: GRAY, paddingTop: 4 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            <p className="text-[#3a3a3a] text-[10px] mt-3">
+              PA estimated as AB + BB + HBP per game. Press ESC or click outside to close.
+            </p>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
