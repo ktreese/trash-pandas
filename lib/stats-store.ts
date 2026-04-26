@@ -238,18 +238,23 @@ function parseSeasonCsv(csvText: string): {
     const ipStr = r[col("IP")]; // This is the pitching IP column
     const ip = parseFloat(ipStr) || 0;
     if (ip > 0) {
+      const ipIdx = col("IP");
+      const bfIdx = headers.indexOf("BF", ipIdx);
+      const npIdx = headers.indexOf("NP", ipIdx);
       pitching.push({
         number: num,
         name,
-        gp: parseInt(r[headers.indexOf("GP", col("IP"))], 10) || gp,
+        gp: parseInt(r[headers.indexOf("GP", ipIdx)], 10) || gp,
         ip: ipStr,
         w: parseInt(r[col("W")], 10) || 0,
         l: parseInt(r[col("L")], 10) || 0,
-        h: parseInt(r[headers.indexOf("H", col("IP"))], 10) || 0,
-        r: parseInt(r[headers.indexOf("R", col("IP"))], 10) || 0,
+        h: parseInt(r[headers.indexOf("H", ipIdx)], 10) || 0,
+        r: parseInt(r[headers.indexOf("R", ipIdx)], 10) || 0,
         er: parseInt(r[col("ER")], 10) || 0,
-        bb: parseInt(r[headers.indexOf("BB", col("IP"))], 10) || 0,
-        so: parseInt(r[headers.indexOf("SO", col("IP"))], 10) || 0,
+        bb: parseInt(r[headers.indexOf("BB", ipIdx)], 10) || 0,
+        so: parseInt(r[headers.indexOf("SO", ipIdx)], 10) || 0,
+        bf: bfIdx !== -1 ? parseInt(r[bfIdx], 10) || 0 : undefined,
+        np: npIdx !== -1 ? parseInt(r[npIdx], 10) || 0 : undefined,
         era: r[col("ERA")] || "0.00",
         whip: r[col("WHIP")] || "0.00",
       });

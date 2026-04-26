@@ -33,6 +33,8 @@ export interface PitchingStats {
   er: number;
   bb: number;
   so: number;
+  bf?: number;
+  np?: number;
   era: string;
   whip: string;
 }

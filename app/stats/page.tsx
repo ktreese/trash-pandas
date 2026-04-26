@@ -478,6 +478,8 @@ export default function StatsPage() {
         p.er,
         p.bb,
         p.so,
+        p.bf ?? "—",
+        p.np ?? "—",
         p.era,
         p.whip,
       ]),
@@ -699,7 +701,7 @@ export default function StatsPage() {
             {tab === "pitching" && (
               <BoxScoreTable
                 headers={[
-                  "#", "Player", "GP", "IP", "W", "L", "H", "R", "ER", "BB", "K", "ERA", "WHIP",
+                  "#", "Player", "GP", "IP", "W", "L", "H", "R", "ER", "BB", "K", "BF", "NP", "ERA", "WHIP",
                 ]}
                 rows={seasonPitchingRows}
               />
