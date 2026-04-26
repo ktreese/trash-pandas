@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Users, ChevronUp, ChevronDown, ChevronUpDown } from "lucide-react";
+import { Users, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import type { BattingStats } from "@/lib/stats";
 
 const MIN_PA = 5;
@@ -104,7 +104,7 @@ export default function LineupAdvisor() {
   };
 
   const SortIcon = ({ col }: { col: SortKey }) => {
-    if (sortKey !== col) return <ChevronUpDown size={11} className="text-[#3a3a3a]" />;
+    if (sortKey !== col) return <ChevronsUpDown size={11} className="text-[#3a3a3a]" />;
     return sortDir === "desc"
       ? <ChevronDown size={11} className="text-[#c4a0e8]" />
       : <ChevronUp size={11} className="text-[#c4a0e8]" />;
@@ -198,6 +198,7 @@ export default function LineupAdvisor() {
                               {col.label}
                               <SortIcon col={col.key} />
                             </span>
+
                             <span className="invisible group-hover/col:visible absolute bottom-full right-0 mb-2 w-48 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-[10px] text-[#b0b0b0] shadow-xl z-10 leading-relaxed text-left font-normal normal-case tracking-normal whitespace-normal">
                               {col.tip}
                             </span>
