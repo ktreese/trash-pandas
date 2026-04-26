@@ -3,6 +3,7 @@ import Papa from "papaparse";
 import type {
   BattingStats,
   PitchingStats,
+  FieldingStats,
   GameResult,
   GameBoxScore,
   GameBatting,
@@ -20,6 +21,7 @@ export interface StatsManifest {
     uploadedAt: string;
     batting: BattingStats[];
     pitching: PitchingStats[];
+    fielding: FieldingStats[];
   } | null;
   games: GameEntry[];
 }
@@ -81,7 +83,7 @@ async function saveManifest(manifest: StatsManifest): Promise<void> {
 
 // ─── Upload season CSV ────────────────────────────────────────────
 export async function uploadSeasonCsv(csvText: string): Promise<StatsManifest> {
-  const { batting, pitching } = parseSeasonCsv(csvText);
+  const { batting, pitching, fielding } = parseSeasonCsv(csvText);
 
   // Store raw CSV in blob
   const csvBlob = await put(`${STATS_PREFIX}season.csv`, csvText, {
@@ -97,6 +99,7 @@ export async function uploadSeasonCsv(csvText: string): Promise<StatsManifest> {
     uploadedAt: new Date().toISOString(),
     batting,
     pitching,
+    fielding,
   };
 
   await saveManifest(manifest);
@@ -191,6 +194,7 @@ export async function deleteGame(gameId: number): Promise<StatsManifest> {
 function parseSeasonCsv(csvText: string): {
   batting: BattingStats[];
   pitching: PitchingStats[];
+  fielding: FieldingStats[];
 } {
   const rows = parseCsvRows(csvText);
   const headers = rows[0]; // row index 0 = header row (row 2 of file, after section header)
@@ -200,6 +204,7 @@ function parseSeasonCsv(csvText: string): {
 
   const batting: BattingStats[] = [];
   const pitching: PitchingStats[] = [];
+  const fielding: FieldingStats[] = [];
 
   // Data rows start at index 1, skip "Totals" row and empty/glossary rows
   for (let i = 1; i < rows.length; i++) {
@@ -228,9 +233,13 @@ function parseSeasonCsv(csvText: string): {
       r: parseInt(r[col("R")], 10) || 0,
       bb: parseInt(r[col("BB")], 10) || 0,
       so: parseInt(r[col("SO")], 10) || 0,
+      kl: col("K-L") !== -1 ? parseInt(r[col("K-L")], 10) || 0 : undefined,
       sb: parseInt(r[col("SB")], 10) || 0,
       hbp: parseInt(r[col("HBP")], 10) || 0,
       qabPct: r[col("QAB%")] || "0.0",
+      qab: col("QAB") !== -1 ? parseInt(r[col("QAB")], 10) || 0 : undefined,
+      ps: col("PS") !== -1 ? parseInt(r[col("PS")], 10) || 0 : undefined,
+      psPa: col("PS/PA") !== -1 ? r[col("PS/PA")] || undefined : undefined,
     });
 
     // Pitching — only include players with IP > 0
@@ -240,7 +249,7 @@ function parseSeasonCsv(csvText: string): {
     if (ip > 0) {
       const ipIdx = col("IP");
       const bfIdx = headers.indexOf("BF", ipIdx);
-      const npIdx = headers.indexOf("NP", ipIdx);
+      const npIdx = headers.indexOf("#P", ipIdx);
       pitching.push({
         number: num,
         name,
@@ -259,12 +268,34 @@ function parseSeasonCsv(csvText: string): {
         whip: r[col("WHIP")] || "0.00",
       });
     }
+
+    // Fielding — position innings, anchored after FPCT column
+    const fpctIdx = headers.indexOf("FPCT");
+    if (fpctIdx !== -1) {
+      const posCol = (pos: string) => {
+        const idx = headers.indexOf(pos, fpctIdx);
+        return idx !== -1 && r[idx] && r[idx] !== "0" && r[idx] !== "0.0" ? r[idx] : undefined;
+      };
+      fielding.push({
+        number: num,
+        name,
+        p: posCol("P"),
+        c: posCol("C"),
+        firstBase: posCol("1B"),
+        secondBase: posCol("2B"),
+        thirdBase: posCol("3B"),
+        ss: posCol("SS"),
+        lf: posCol("LF"),
+        cf: posCol("CF"),
+        rf: posCol("RF"),
+      });
+    }
   }
 
   // Sort pitching by IP desc
   pitching.sort((a, b) => parseFloat(b.ip) - parseFloat(a.ip));
 
-  return { batting, pitching };
+  return { batting, pitching, fielding };
 }
 
 // ─── CSV Parsing: Game Box Score ──────────────────────────────────

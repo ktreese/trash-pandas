@@ -364,13 +364,26 @@ export function RunsTrendChart({ data }: { data: GameResult[] }) {
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime() || a.id - b.id
   );
 
+  // Pre-count how many games share each dateShort so we can build unique labels
+  const dateCounts: Record<string, number> = {};
+  const dateSeenCount: Record<string, number> = {};
+  for (const g of sorted) {
+    dateCounts[g.dateShort] = (dateCounts[g.dateShort] ?? 0) + 1;
+  }
+
   let cumFor = 0;
   let cumAgainst = 0;
-  const chartData = sorted.map((g, i) => {
+  const chartData = sorted.map((g) => {
     cumFor += g.runsFor;
     cumAgainst += g.runsAgainst;
+    dateSeenCount[g.dateShort] = (dateSeenCount[g.dateShort] ?? 0) + 1;
+    const count = dateSeenCount[g.dateShort];
+    const name = dateCounts[g.dateShort] > 1 && count > 1
+      ? `${g.dateShort} (${count})`
+      : g.dateShort;
     return {
-      name: `Game ${i + 1}`,
+      name,
+      opponent: g.opponent,
       date: g.dateShort,
       "Runs Scored": cumFor,
       "Runs Allowed": cumAgainst,
@@ -382,7 +395,7 @@ export function RunsTrendChart({ data }: { data: GameResult[] }) {
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={chartData} margin={{ left: 0, right: 20, top: 10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" />
-          <XAxis dataKey="date" tick={{ fill: GRAY, fontSize: 10 }} axisLine={false} />
+          <XAxis dataKey="name" tick={{ fill: GRAY, fontSize: 10 }} axisLine={false} />
           <YAxis tick={{ fill: GRAY, fontSize: 10 }} axisLine={false} />
           <Tooltip cursor={false} contentStyle={{ backgroundColor: BG, border: "1px solid #2a2a2a", borderRadius: 8, fontSize: 12 }} itemStyle={{ color: "#b0b0b0" }} labelStyle={{ color: "white", fontWeight: 600 }} />
           <Line type="monotone" dataKey="Runs Scored" stroke={PURPLE_LIGHT} strokeWidth={2.5} dot={{ fill: PURPLE_LIGHT, r: 4 }} activeDot={{ r: 6 }} />

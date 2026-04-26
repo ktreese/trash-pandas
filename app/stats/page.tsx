@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ChevronRight, TrendingUp, Target, Zap, Award, Loader2, BarChart3 } from "lucide-react";
 import { BaseballIcon, BaseballDiamond, BaseballSeams } from "@/components/BaseballSvg";
-import type { BattingStats, PitchingStats, GameResult, GameBoxScore } from "@/lib/stats";
+import type { BattingStats, PitchingStats, FieldingStats, GameResult, GameBoxScore } from "@/lib/stats";
 import {
   BattingAvgChart,
   PlateDisciplineChart,
@@ -293,11 +293,12 @@ function BoxScoreTable({
 
 export default function StatsPage() {
   const [selectedGame, setSelectedGame] = useState<number | null>(null);
-  const [tab, setTab] = useState<"batting" | "pitching">("batting");
+  const [tab, setTab] = useState<"batting" | "pitching" | "fielding">("batting");
   const [loading, setLoading] = useState(true);
   const [seasonName, setSeasonName] = useState("Spring 2026");
   const [battingStats, setBattingStats] = useState<BattingStats[]>([]);
   const [pitchingStats, setPitchingStats] = useState<PitchingStats[]>([]);
+  const [fielding, setFielding] = useState<FieldingStats[]>([]);
   const [gameLog, setGameLog] = useState<GameResult[]>([]);
   const [gameBoxScores, setGameBoxScores] = useState<Record<number, GameBoxScore>>({});
 
@@ -308,6 +309,7 @@ export default function StatsPage() {
         setSeasonName(data.season);
         setBattingStats(data.batting);
         setPitchingStats(data.pitching);
+        setFielding(data.fielding ?? []);
         setGameLog(data.gameLog);
         setGameBoxScores(data.gameBoxScores);
       })
@@ -446,9 +448,13 @@ export default function StatsPage() {
         p.r,
         p.bb,
         p.so,
+        p.kl ?? "—",
         p.sb,
         p.hbp,
+        p.qab ?? "—",
         `${p.qabPct}%`,
+        p.ps ?? "—",
+        p.psPa ?? "—",
       ]),
     [battingStats]
   );
@@ -673,7 +679,7 @@ export default function StatsPage() {
 
             {/* Tab switcher */}
             <div className="flex gap-1 mb-6 border-b border-[#2a2a2a]">
-              {(["batting", "pitching"] as const).map((t) => (
+              {(["batting", "pitching", "fielding"] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setTab(t)}
@@ -692,7 +698,7 @@ export default function StatsPage() {
               <BoxScoreTable
                 headers={[
                   "#", "Player", "GP", "PA", "AB", "AVG", "OBP", "OPS",
-                  "H", "2B", "3B", "HR", "RBI", "R", "BB", "K", "SB", "HBP", "QAB%",
+                  "H", "2B", "3B", "HR", "RBI", "R", "BB", "K", "K-L", "SB", "HBP", "QAB", "QAB%", "PS", "PS/PA",
                 ]}
                 rows={seasonBattingRows}
                 highlightCells={seasonBattingHighlights}
@@ -701,9 +707,27 @@ export default function StatsPage() {
             {tab === "pitching" && (
               <BoxScoreTable
                 headers={[
-                  "#", "Player", "GP", "IP", "W", "L", "H", "R", "ER", "BB", "K", "BF", "NP", "ERA", "WHIP",
+                  "#", "Player", "GP", "IP", "W", "L", "H", "R", "ER", "BB", "K", "BF", "#P", "ERA", "WHIP",
                 ]}
                 rows={seasonPitchingRows}
+              />
+            )}
+            {tab === "fielding" && (
+              <BoxScoreTable
+                headers={["#", "Player", "P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF"]}
+                rows={fielding.map((p) => [
+                  p.number,
+                  p.name,
+                  p.p ?? "—",
+                  p.c ?? "—",
+                  p.firstBase ?? "—",
+                  p.secondBase ?? "—",
+                  p.thirdBase ?? "—",
+                  p.ss ?? "—",
+                  p.lf ?? "—",
+                  p.cf ?? "—",
+                  p.rf ?? "—",
+                ])}
               />
             )}
 
@@ -711,6 +735,16 @@ export default function StatsPage() {
               <span className="text-[#c4a0e8]">Purple</span> = team leader.
               Stats via GameChanger.
             </p>
+            {tab === "batting" && (
+              <p className="text-[#4a4a4a] text-xs mt-2">
+                QAB (Quality At-Bat) = a plate appearance where the batter accomplishes a positive outcome: hard contact, walk, HBP, sac, moving a runner, or a long at-bat (6+ pitches).
+              </p>
+            )}
+            {tab === "fielding" && (
+              <p className="text-[#4a4a4a] text-xs mt-2">
+                Values = innings played at each position.
+              </p>
+            )}
           </motion.div>
         ) : (
           /* ══════════════════════ GAME DETAIL VIEW ══════════════════════ */

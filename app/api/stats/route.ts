@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getStatsManifest } from "@/lib/stats-store";
-import type { BattingStats, PitchingStats, GameResult, GameBoxScore } from "@/lib/stats";
+import type { BattingStats, PitchingStats, FieldingStats, GameResult, GameBoxScore } from "@/lib/stats";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +8,7 @@ export interface StatsResponse {
   season: string;
   batting: BattingStats[];
   pitching: PitchingStats[];
+  fielding: FieldingStats[];
   gameLog: GameResult[];
   gameBoxScores: Record<number, GameBoxScore>;
 }
@@ -18,6 +19,7 @@ export async function GET() {
 
     const batting: BattingStats[] = manifest.season?.batting ?? [];
     const pitching: PitchingStats[] = manifest.season?.pitching ?? [];
+    const fielding: FieldingStats[] = manifest.season?.fielding ?? [];
 
     const gameLog: GameResult[] = manifest.games.map((g) => ({
       id: g.id,
@@ -40,6 +42,7 @@ export async function GET() {
       season: "Spring 2026",
       batting,
       pitching,
+      fielding,
       gameLog,
       gameBoxScores,
     };

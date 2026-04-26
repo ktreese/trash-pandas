@@ -16,9 +16,13 @@ export interface BattingStats {
   r: number;
   bb: number;
   so: number;
+  kl?: number;
   sb: number;
   hbp: number;
   qabPct: string;
+  qab?: number;
+  ps?: number;
+  psPa?: string;
 }
 
 export interface PitchingStats {
@@ -37,6 +41,20 @@ export interface PitchingStats {
   np?: number;
   era: string;
   whip: string;
+}
+
+export interface FieldingStats {
+  number: number;
+  name: string;
+  p?: string;
+  c?: string;
+  firstBase?: string;
+  secondBase?: string;
+  thirdBase?: string;
+  ss?: string;
+  lf?: string;
+  cf?: string;
+  rf?: string;
 }
 
 // ─── Game-level types ──────────────────────────────────────────────
