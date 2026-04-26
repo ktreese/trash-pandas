@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -40,6 +41,7 @@ export default function RootLayout({
         <footer className="border-t border-[#2a2a2a] py-6 text-center text-[#8a8a8a] text-sm">
           <p>Trash Pandas 14U &mdash; Play hard, have fun.</p>
         </footer>
+        <Analytics />
       </body>
     </html>
   );
