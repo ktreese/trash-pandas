@@ -736,9 +736,14 @@ export default function StatsPage() {
               Stats via GameChanger.
             </p>
             {tab === "batting" && (
-              <p className="text-[#4a4a4a] text-xs mt-2">
-                QAB (Quality At-Bat) = a plate appearance where the batter accomplishes a positive outcome: hard contact, walk, HBP, sac, moving a runner, or a long at-bat (6+ pitches).
-              </p>
+              <div className="space-y-1 mt-2">
+                <p className="text-[#4a4a4a] text-xs">
+                  QAB (Quality At-Bat) = a plate appearance where the batter accomplishes a positive outcome: hard contact, walk, HBP, sac, moving a runner, or a long at-bat (6+ pitches).
+                </p>
+                <p className="text-[#4a4a4a] text-xs">
+                  PS (Pitches Seen) = total pitches a batter faced across all plate appearances. PS/PA = average pitches seen per plate appearance — higher means the batter works deeper counts and tires opposing pitchers.
+                </p>
+              </div>
             )}
             {tab === "fielding" && (
               <p className="text-[#4a4a4a] text-xs mt-2">

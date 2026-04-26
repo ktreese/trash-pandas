@@ -2,6 +2,7 @@ import { getAllMedia, getStorageStats } from "@/lib/media";
 import { getStatsManifest } from "@/lib/stats-store";
 import AdminMediaGrid from "@/components/admin/AdminMediaGrid";
 import AdminStatsManager from "@/components/admin/AdminStatsManager";
+import LineupAdvisor from "@/components/admin/LineupAdvisor";
 import StorageBar from "@/components/admin/StorageBar";
 import LogoutButton from "@/components/admin/LogoutButton";
 import Image from "next/image";
@@ -60,6 +61,7 @@ export default async function AdminDashboardPage() {
         <AdminMediaGrid items={items} />
 
         <AdminStatsManager initialManifest={statsManifest} />
+        <LineupAdvisor />
       </main>
     </div>
   );
